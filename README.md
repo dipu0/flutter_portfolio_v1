@@ -19,7 +19,7 @@ A professional portfolio website built with Flutter Web, designed to showcase yo
 ### Prerequisites
 
 - Flutter SDK (version 3.29.3 or later)
-- Dart (version 3.5.2 or later)
+- Dart (version 3.7.2 or later)
 
 ### Installation
 
