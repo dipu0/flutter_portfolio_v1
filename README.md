@@ -104,24 +104,38 @@ Edit the `skills` list in `lib/config/config.dart` to update your technical skil
    name: Deploy to GitHub Pages
    
    on:
-     push:
-       branches: [ master ]
+   push:
+   branches: [ master ]
    
    jobs:
-     build-and-deploy:
-       runs-on: ubuntu-latest
-       steps:
-         - uses: actions/checkout@v4
+   build-and-deploy:
+   runs-on: ubuntu-latest
+   steps:
+   - uses: actions/checkout@v4
+   
+         # Set up Flutter first
          - uses: subosito/flutter-action@v2
            with:
              channel: 'stable'
-         - run: flutter pub get
-         - run: flutter build web --release --base-href /flutter_portfolio_v1_provide/
-         - uses: peaceiris/actions-gh-pages@v3
+             flutter-version: '3.29.3'
+   
+         # Now you can run flutter commands
+         - name: Enable web
+           run: flutter create --platforms web .
+   
+         - name: Install dependencies
+           run: flutter pub get
+   
+         - name: Build web
+           run: flutter build web --release --base-href /flutter_portfolio_v1/
+   
+         - name: Deploy to GitHub Pages
+           uses: peaceiris/actions-gh-pages@v3
            with:
              github_token: ${{ secrets.GITHUB_TOKEN }}
              publish_dir: ./build/web
              publish_branch: gh-pages
+
    ```
 
 2. **Configure GitHub Pages**:
