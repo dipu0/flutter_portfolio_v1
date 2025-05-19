@@ -11,20 +11,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Set up Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: '3.29.3'
 
+      # Install dependencies
       - name: Install dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
 
+      # Build web release
       - name: Build web
         run: flutter build web --release --base-href /flutter_portfolio_v1_provide/
 
+      # Deploy to gh-pages branch
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITH_TOKEN }}
           publish_dir: ./build/web
+          publish_branch: gh-pages
+          keep_files: false
           destination_dir: ./flutter_portfolio_v1_provide
