@@ -10,14 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Add this step to ensure web support is enabled
-      - name: Enable web
-        run: flutter create --platforms web .
-
+      # Set up Flutter first
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: '3.29.3'
+
+      # Now you can run flutter commands
+      - name: Enable web
+        run: flutter create --platforms web .
 
       - name: Install dependencies
         run: flutter pub get
