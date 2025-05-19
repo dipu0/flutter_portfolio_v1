@@ -1,3 +1,5 @@
+Here's the enhanced README.md with a detailed deployment section added:
+
 # Flutter Developer Portfolio
 
 A professional portfolio website built with Flutter Web, designed to showcase your skills, projects, and services as a Flutter developer.
@@ -93,14 +95,79 @@ Edit the `skills` list in `lib/config/config.dart` to update your technical skil
 
 ## Deployment
 
-To deploy your portfolio:
+### GitHub Pages Deployment (Recommended)
 
-1. Build the web app:
-   ```bash
-   flutter build web --release
+1. **Enable GitHub Actions**:
+   Create a `.github/workflows/deploy.yml` file with this content:
+
+   ```yaml
+   name: Deploy to GitHub Pages
+   
+   on:
+     push:
+       branches: [ master ]
+   
+   jobs:
+     build-and-deploy:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: subosito/flutter-action@v2
+           with:
+             channel: 'stable'
+         - run: flutter pub get
+         - run: flutter build web --release --base-href /flutter_portfolio_v1_provide/
+         - uses: peaceiris/actions-gh-pages@v3
+           with:
+             github_token: ${{ secrets.GITHUB_TOKEN }}
+             publish_dir: ./build/web
+             publish_branch: gh-pages
    ```
 
-2. Deploy the `build/web` directory to your preferred hosting service (Firebase Hosting, GitHub Pages, Netlify, etc.).
+2. **Configure GitHub Pages**:
+   - Go to Repository Settings → Pages
+   - Set source to "Deploy from branch"
+   - Select `gh-pages` branch and `/ (root)` folder
+   - Click Save
+
+3. **Your site will be live at**:
+   ```
+   https://<your-github-username>.github.io/flutter_portfolio_v1_provide/
+   ```
+
+### Firebase Hosting (Alternative)
+
+1. Install Firebase CLI:
+   ```bash
+   npm install -g firebase-tools
+   firebase login
+   ```
+
+2. Initialize Firebase:
+   ```bash
+   firebase init hosting
+   ```
+   - Select your Firebase project
+   - Set `build/web` as public directory
+   - Configure as single-page app: Yes
+   - Set up automatic builds: No
+
+3. Deploy:
+   ```bash
+   flutter build web
+   firebase deploy
+   ```
+
+### Netlify Deployment
+
+1. Connect your GitHub repository to Netlify
+2. Set these build settings:
+   - Build command: `flutter build web`
+   - Publish directory: `build/web`
+3. Add environment variable:
+   ```
+   FLUTTER_WEB_CANVASKIT_URL = /canvaskit/
+   ```
 
 ## Architecture
 
@@ -109,6 +176,12 @@ This project follows the MVVM (Model-View-ViewModel) architecture:
 - **Models**: Data structures for projects, job experiences, and blog posts
 - **Views**: UI components for each section
 - **ViewModels**: Business logic and state management
+
+## Troubleshooting Deployment
+
+- **404 Errors**: Ensure your `--base-href` matches your repository name
+- **Blank Page**: Verify you built with `--release` flag
+- **Routing Issues**: Configure your hosting provider to redirect all routes to `index.html`
 
 ## Contributing
 
