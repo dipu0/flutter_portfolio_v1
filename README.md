@@ -25,7 +25,7 @@ A professional portfolio website built with Flutter Web, designed to showcase yo
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/dipu0/flutter_portfolio_v1_provide.git
+   git clone https://github.com/dipu0/flutter_portfolio_v1.git
    cd flutter_portfolio_v1_provide
    ```
 
