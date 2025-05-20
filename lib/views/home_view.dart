@@ -1,120 +1,94 @@
 import 'package:flutter/material.dart';
-import 'package:responsive_builder/responsive_builder.dart';
-import 'package:portfolio/views/hero_view.dart';
-import 'package:portfolio/views/about_view.dart';
-import 'package:portfolio/views/portfolio_view.dart';
-import 'package:portfolio/views/services_view.dart';
-import 'package:portfolio/views/tech_stack_view.dart';
-import 'package:portfolio/views/blog_view.dart';
-import 'package:portfolio/views/contact_view.dart';
-import 'package:portfolio/views/resume_view.dart';
-import 'package:portfolio/widgets/sidebar.dart';
-import 'package:portfolio/widgets/mobile_app_bar.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:portfolio/view_models/navigation_view_model.dart';
+import 'package:provider/provider.dart';
+import 'package:responsive_builder/responsive_builder.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
+import '../widgets/mobile_app_bar.dart';
+import '../widgets/sidebar.dart';
+import 'about_view.dart';
+import 'blog_view.dart';
+import 'contact_view.dart';
+import 'hero_view.dart';
+import 'portfolio_view.dart';
+import 'resume_view.dart';
+import 'services_view.dart';
+import 'tech_stack_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
-
-  static final List<GlobalKey> sectionKeys = List.generate(7, (index) => GlobalKey());
 
   @override
   State<HomeView> createState() => _HomeViewState();
 }
 
 class _HomeViewState extends State<HomeView> {
-  final ScrollController _scrollController = ScrollController();
-  int _currentSection = 0;
+  final List<Widget> _sections = [
+    const HeroView(),
+    const AboutView(),
+    const PortfolioView(),
+    const ServicesView(),
+    const TechStackView(),
+    const BlogView(),
+    const ContactView(),
+    const ResumeView(),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<NavigationViewModel>(context, listen: false).initialize();
+    });
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    Provider.of<NavigationViewModel>(context, listen: false)
+        .disposeControllers();
     super.dispose();
-  }
-
-  void _onScroll() {
-    final scrollPosition = _scrollController.position.pixels;
-    for (int i = HomeView.sectionKeys.length - 1; i >= 0; i--) {
-      final GlobalKey key = HomeView.sectionKeys[i];
-      final RenderObject? renderObject = key.currentContext?.findRenderObject();
-      if (renderObject != null && renderObject is RenderBox) {
-        final RenderBox box = renderObject;
-        final position = box.localToGlobal(Offset.zero).dy;
-        if (position <= 100) {
-          if (_currentSection != i) {
-            setState(() {
-              _currentSection = i;
-            });
-          }
-          break;
-        }
-      }
-    }
-  }
-
-  void scrollToSection(int index) {
-    final GlobalKey key = HomeView.sectionKeys[index];
-    final RenderObject? renderObject = key.currentContext?.findRenderObject();
-    if (renderObject != null && renderObject is RenderBox) {
-      final RenderBox box = renderObject;
-      final position = box.localToGlobal(Offset.zero).dy;
-      final scrollPosition = _scrollController.position.pixels + position - 80;
-      _scrollController.animateTo(
-        scrollPosition,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveBuilder(
       builder: (context, sizingInformation) {
-        final isMobile = sizingInformation.deviceScreenType == DeviceScreenType.mobile;
+        final isMobile =
+            sizingInformation.deviceScreenType == DeviceScreenType.mobile;
+        final scrollProvider = Provider.of<NavigationViewModel>(context);
 
         return Scaffold(
-          appBar: isMobile ? MobileAppBar(currentIndex: _currentSection, onTap: scrollToSection) : null,
+          appBar: isMobile
+              ? MobileAppBar(
+                  currentIndex: scrollProvider.currentSection,
+                  onTap: scrollProvider.scrollTo,
+                )
+              : null,
           drawer: isMobile
               ? Sidebar(
-            currentIndex: _currentSection,
-            onTap: (index) {
-              Navigator.pop(context);
-              scrollToSection(index);
-            },
-          )
+                  currentIndex: scrollProvider.currentSection,
+                  onTap: (index) {
+                    Navigator.pop(context);
+                    scrollProvider.scrollTo(index);
+                  },
+                )
               : null,
           body: Row(
             children: [
               if (!isMobile)
                 Sidebar(
-                  currentIndex: _currentSection,
-                  onTap: scrollToSection,
+                  currentIndex: scrollProvider.currentSection,
+                  onTap: scrollProvider.scrollTo,
                 ),
               Expanded(
-                child: ListView(
-                  controller: _scrollController,
-                  padding: EdgeInsets.zero,
-                  children: [
-                    HeroView(key: HomeView.sectionKeys[0]),
-                    AboutView(key: HomeView.sectionKeys[1]),
-                    PortfolioView(key: HomeView.sectionKeys[2]),
-                    ServicesView(key: HomeView.sectionKeys[3]),
-                    TechStackView(key: HomeView.sectionKeys[4]),
-                    BlogView(key: HomeView.sectionKeys[5]),
-                    Column(
-                      children: [
-                        ContactView(key: HomeView.sectionKeys[6]),
-                        const ResumeView(),
-                      ],
-                    ),
-                  ].animate(interval: 100.ms).fadeIn(duration: 600.ms),
+                child: ScrollablePositionedList.builder(
+                  itemScrollController: scrollProvider.scrollController,
+                  itemPositionsListener: scrollProvider.positionsListener,
+                  itemCount: _sections.length,
+                  itemBuilder: (context, index) => _sections[index]
+                      .animate(delay: (100 * index).ms)
+                      .fadeIn(duration: 600.ms),
                 ),
               ),
             ],
