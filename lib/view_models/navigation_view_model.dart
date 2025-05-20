@@ -31,13 +31,25 @@ class NavigationViewModel extends ChangeNotifier {
 
   void _onScroll() {
     final positions = positionsListener.itemPositions.value;
+
     if (positions.isNotEmpty) {
-      final firstVisible = positions.first;
-      final lastVisible = positions.last;
-      final center = (firstVisible.index + lastVisible.index) ~/ 2;
-      currentSection = center;
+      final visibleItems = positions
+          .where((item) => item.itemLeadingEdge <= 1 && item.itemTrailingEdge >= 0)
+          .toList();
+
+      if (visibleItems.isNotEmpty) {
+        visibleItems.sort((a, b) {
+          final aCenter = (a.itemLeadingEdge + a.itemTrailingEdge) / 2;
+          final bCenter = (b.itemLeadingEdge + b.itemTrailingEdge) / 2;
+          return (aCenter - 0.5).abs().compareTo((bCenter - 0.5).abs());
+        });
+
+        final mostCentered = visibleItems.first.index;
+        currentSection = mostCentered;
+      }
     }
   }
+
 
   void initialize() {
     positionsListener.itemPositions.addListener(_onScroll);
